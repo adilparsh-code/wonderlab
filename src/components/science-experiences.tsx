@@ -32,7 +32,7 @@ function KnowledgeCheck({ question, options, correct, explanation }: CheckProps)
         ))}
       </div>
       {answer !== null && (
-        <p className="status-message" data-kind={answer === correct ? "success" : "error"}>
+        <p className="status-message" data-kind={answer === correct ? "success" : "error"} role="status">
           {answer === correct ? "That’s right. " : "Not quite. "}
           {explanation}
         </p>

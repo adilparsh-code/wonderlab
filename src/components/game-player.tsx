@@ -44,7 +44,9 @@ export function GamePlayer({ game }: GamePlayerProps) {
   const [score, setScore] = useState(0);
   const [progress, setProgress] = useState<ProgressData>(EMPTY_PROGRESS);
   const [storageMessage, setStorageMessage] = useState("");
-  const [memoryPreview, setMemoryPreview] = useState(false);
+  const [memoryPreviewIndex, setMemoryPreviewIndex] = useState<number | null>(
+    null,
+  );
   const [memoryLevel, setMemoryLevel] = useState(1);
   const [memoryInputs, setMemoryInputs] = useState<number[]>([]);
   const [numberDifficulty, setNumberDifficulty] =
@@ -111,7 +113,7 @@ export function GamePlayer({ game }: GamePlayerProps) {
     setCompleted(false);
     setAnswer("");
     setScore(0);
-    setMemoryPreview(false);
+    setMemoryPreviewIndex(null);
     setMemoryLevel(1);
     setMemoryInputs([]);
     setNumberDifficulty("Warm-up");
@@ -127,16 +129,40 @@ export function GamePlayer({ game }: GamePlayerProps) {
     showFeedback("Round reset. Start when you are ready.");
   };
 
+  const previewMemorySequence = (level: number) => {
+    const sequence = MEMORY_LEVELS[level - 1];
+    setMemoryPreviewIndex(0);
+    showFeedback(
+      level === 1
+        ? "Watch the highlighted tiles in order."
+        : `Level ${level}: watch the highlighted tiles in order.`,
+    );
+
+    const showNextTile = (index: number) => {
+      timerRef.current = setTimeout(() => {
+        const nextIndex = index + 1;
+        if (nextIndex < sequence.length) {
+          setMemoryPreviewIndex(nextIndex);
+          showNextTile(nextIndex);
+          return;
+        }
+        setMemoryPreviewIndex(null);
+        showFeedback(
+          level === 1
+            ? "Now repeat the sequence by selecting the tiles in order."
+            : `Level ${level}: repeat the sequence.`,
+        );
+      }, 600);
+    };
+
+    showNextTile(0);
+  };
+
   const startRound = () => {
     resetRound();
     setStarted(true);
     if (game.id === "memory-matrix") {
-      setMemoryPreview(true);
-      showFeedback("Watch the tiles in order. The sequence will disappear shortly.");
-      timerRef.current = setTimeout(() => {
-        setMemoryPreview(false);
-        showFeedback("Now repeat the sequence by selecting the tiles in order.");
-      }, 1800);
+      previewMemorySequence(1);
     } else if (game.id === "reaction-challenge") {
       beginReaction();
     } else {
@@ -238,7 +264,7 @@ export function GamePlayer({ game }: GamePlayerProps) {
   };
 
   const chooseMemoryTile = (index: number) => {
-    if (!started || memoryPreview || completed) return;
+    if (!started || memoryPreviewIndex !== null || completed) return;
     const next = [...memoryInputs, index];
     setMemoryInputs(next);
     if (memorySequence[next.length - 1] !== index) {
@@ -249,12 +275,7 @@ export function GamePlayer({ game }: GamePlayerProps) {
       const nextLevel = memoryLevel + 1;
       setMemoryLevel(nextLevel);
       setMemoryInputs([]);
-      setMemoryPreview(true);
-      showFeedback(`Level ${nextLevel}: watch the longer sequence.`);
-      timerRef.current = setTimeout(() => {
-        setMemoryPreview(false);
-        showFeedback(`Level ${nextLevel}: repeat the sequence.`);
-      }, 1800);
+      previewMemorySequence(nextLevel);
     } else if (next.length === memorySequence.length) {
       finish(100, "All three levels complete. Nice observation!");
     } else {
@@ -318,16 +339,16 @@ export function GamePlayer({ game }: GamePlayerProps) {
           {game.id === "memory-matrix" && (
             <>
               <p className="game-score" aria-live="polite">
-                {memoryPreview
-                  ? `Level ${memoryLevel}: ${memorySequence.map((tile) => tile + 1).join(" · ")}`
+                {memoryPreviewIndex !== null
+                  ? `Level ${memoryLevel}: watch the highlighted tiles.`
                   : `Level ${memoryLevel} · ${memoryInputs.length} of ${memorySequence.length} selected`}
               </p>
               <div className="memory-grid" aria-label="Four memory tiles">
                 {[0, 1, 2, 3].map((tile) => (
                   <button
                     aria-label={`Tile ${tile + 1}`}
-                    className={`memory-tile${memoryPreview && memorySequence[0] === tile ? " memory-tile--active" : ""}`}
-                    disabled={memoryPreview || completed}
+                    className={`memory-tile${memoryPreviewIndex !== null && memorySequence[memoryPreviewIndex] === tile ? " memory-tile--active" : ""}`}
+                    disabled={memoryPreviewIndex !== null || completed}
                     key={tile}
                     onClick={() => chooseMemoryTile(tile)}
                     type="button"
