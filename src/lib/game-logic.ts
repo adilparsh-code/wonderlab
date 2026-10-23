@@ -91,3 +91,73 @@ export function recordCompletion(
       : [...progress.completedGames, gameId],
   };
 }
+
+export type NumberQuestLevel = "Warm-up" | "Steady" | "Stretch";
+
+export type NumberQuestQuestion = {
+  question: string;
+  answer: number;
+  explanation: string;
+};
+
+export const NUMBER_QUESTIONS: Record<NumberQuestLevel, NumberQuestQuestion> = {
+  "Warm-up": {
+    question: "7 × 8",
+    answer: 56,
+    explanation: "7 × 8 = 56.",
+  },
+  Steady: {
+    question: "12 × 14",
+    answer: 168,
+    explanation: "12 × 14 = (12 × 10) + (12 × 4) = 120 + 48 = 168.",
+  },
+  Stretch: {
+    question: "23 × 17",
+    answer: 391,
+    explanation: "23 × 17 = (23 × 10) + (23 × 7) = 230 + 161 = 391.",
+  },
+};
+
+export function checkNumberQuestAnswer(
+  level: NumberQuestLevel,
+  answer: string,
+): { correct: boolean } & NumberQuestQuestion {
+  const challenge = NUMBER_QUESTIONS[level];
+  return {
+    correct: answer.trim() === String(challenge.answer),
+    ...challenge,
+  };
+}
+
+export function isCorrectBinaryChallenge(answer: string): boolean {
+  return binaryToDecimal(answer) === 19;
+}
+
+export function isCorrectPatternDetective(answer: string): boolean {
+  return answer.trim() === "48";
+}
+
+export function calculateMazeScore(moves: number): number {
+  return Math.max(10, 100 - moves * 5);
+}
+
+export function calculateReactionScore(elapsedMs: number): number {
+  return Math.max(1, 1000 - elapsedMs);
+}
+
+export const ALGORITHM_STEPS = [
+  "Choose a clear goal",
+  "Write instructions in order",
+  "Test the result and improve it",
+] as const;
+
+export type AlgorithmStep = (typeof ALGORITHM_STEPS)[number];
+
+export function nextAlgorithmStep(completedSteps: string[]): AlgorithmStep | null {
+  if (completedSteps.length >= ALGORITHM_STEPS.length) return null;
+  return ALGORITHM_STEPS[completedSteps.length];
+}
+
+export function isAlgorithmComplete(completedSteps: string[]): boolean {
+  return completedSteps.length >= ALGORITHM_STEPS.length;
+}

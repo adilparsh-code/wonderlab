@@ -2,10 +2,19 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  binaryToDecimal,
+  ALGORITHM_STEPS,
+  calculateMazeScore,
+  calculateReactionScore,
   calculateTypingMetrics,
+  checkNumberQuestAnswer,
   EMPTY_PROGRESS,
+  isAlgorithmComplete,
+  isCorrectBinaryChallenge,
+  isCorrectPatternDetective,
+  nextAlgorithmStep,
+  NUMBER_QUESTIONS,
   recordCompletion,
+  type NumberQuestLevel,
   type ProgressData,
 } from "@/lib/game-logic";
 import { loadProgress, saveProgress } from "@/lib/progress";
@@ -17,30 +26,7 @@ const MEMORY_LEVELS = [
   [1, 3, 0, 2],
 ];
 const TYPING_TEXT = "Small steps build clever solutions.";
-const ALGORITHM_STEPS = [
-  "Choose a clear goal",
-  "Write instructions in order",
-  "Test the result and improve it",
-];
 const ALGORITHM_OPTIONS = [...ALGORITHM_STEPS].reverse();
-const NUMBER_QUESTIONS = {
-  "Warm-up": { question: "7 × 8", answer: 56, explanation: "7 × 8 = 56." },
-  Steady: {
-    question: "12 × 14",
-    answer: 168,
-    explanation: "12 × 14 = (12 × 10) + (12 × 4) = 120 + 48 = 168.",
-  },
-  Stretch: {
-    question: "23 × 17",
-    answer: 391,
-    explanation: "23 × 17 = (23 × 10) + (23 × 7) = 230 + 161 = 391.",
-  },
-} as const;
-type NumberDifficulty = keyof typeof NUMBER_QUESTIONS;
-
-function isNumberDifficulty(value: string): value is NumberDifficulty {
-  return Object.prototype.hasOwnProperty.call(NUMBER_QUESTIONS, value);
-}
 const WALLS = new Set(["1,1", "2,1"]);
 
 type GamePlayerProps = {
@@ -62,7 +48,7 @@ export function GamePlayer({ game }: GamePlayerProps) {
   const [memoryLevel, setMemoryLevel] = useState(1);
   const [memoryInputs, setMemoryInputs] = useState<number[]>([]);
   const [numberDifficulty, setNumberDifficulty] =
-    useState<NumberDifficulty>("Warm-up");
+    useState<NumberQuestLevel>("Warm-up");
   const [mazePosition, setMazePosition] = useState({ x: 0, y: 0 });
   const [mazeMoves, setMazeMoves] = useState(0);
   const [orderedSteps, setOrderedSteps] = useState<string[]>([]);
@@ -187,7 +173,7 @@ export function GamePlayer({ game }: GamePlayerProps) {
       setMazePosition(next);
       setMazeMoves(nextMoves);
       if (next.x === 3 && next.y === 3) {
-        finish(Math.max(10, 100 - nextMoves * 5), `Maze solved in ${nextMoves} moves.`);
+        finish(calculateMazeScore(nextMoves), `Maze solved in ${nextMoves} moves.`);
       } else {
         showFeedback(`Moved. ${nextMoves} ${nextMoves === 1 ? "move" : "moves"} so far.`);
       }
@@ -227,23 +213,23 @@ export function GamePlayer({ game }: GamePlayerProps) {
 
   const submitAnswer = () => {
     if (game.id === "number-quest") {
-      const challenge = NUMBER_QUESTIONS[numberDifficulty];
-      if (answer.trim() === String(challenge.answer)) {
-        finish(100, `Correct: ${challenge.explanation}`);
+      const result = checkNumberQuestAnswer(numberDifficulty, answer);
+      if (result.correct) {
+        finish(100, `Correct: ${result.explanation}`);
       } else {
         showFeedback(
-          `Not quite. Try breaking the multiplication into smaller parts. ${challenge.explanation}`,
+          `Not quite. Try breaking the multiplication into smaller parts. ${result.explanation}`,
           "error",
         );
       }
     } else if (game.id === "binary-challenge") {
-      if (binaryToDecimal(answer) === 19) {
+      if (isCorrectBinaryChallenge(answer)) {
         finish(100, "Correct: 10011₂ = 16 + 2 + 1 = 19₁₀.");
       } else {
         showFeedback("Try grouping the place values: 16, 8, 4, 2, 1.", "error");
       }
     } else if (game.id === "pattern-detective") {
-      if (answer.trim() === "48") {
+      if (isCorrectPatternDetective(answer)) {
         finish(100, "Correct: each term doubles, so 24 × 2 = 48.");
       } else {
         showFeedback("Look at how each term changes: 3 → 6 → 12 → 24.", "error");
@@ -278,7 +264,7 @@ export function GamePlayer({ game }: GamePlayerProps) {
 
   const chooseAlgorithmStep = (step: string) => {
     if (!started || completed || orderedSteps.includes(step)) return;
-    const expected = ALGORITHM_STEPS[orderedSteps.length];
+    const expected = nextAlgorithmStep(orderedSteps);
     if (step !== expected) {
       showFeedback(
         "Think about the process: decide what to solve before writing or testing steps.",
@@ -288,7 +274,7 @@ export function GamePlayer({ game }: GamePlayerProps) {
     }
     const next = [...orderedSteps, step];
     setOrderedSteps(next);
-    if (next.length === ALGORITHM_STEPS.length) {
+    if (isAlgorithmComplete(next)) {
       finish(100, "Algorithm assembled: define, sequence, test, and improve.");
     } else {
       showFeedback(`${next.length} of ${ALGORITHM_STEPS.length} steps in place.`);
@@ -309,7 +295,7 @@ export function GamePlayer({ game }: GamePlayerProps) {
       );
       setReactionResult(elapsed);
       setReactionReady(false);
-      finish(Math.max(1, 1000 - elapsed), `Signal detected in ${elapsed} ms.`);
+      finish(calculateReactionScore(elapsed), `Signal detected in ${elapsed} ms.`);
     }
   };
 
@@ -369,7 +355,9 @@ export function GamePlayer({ game }: GamePlayerProps) {
                     disabled={completed}
                     onChange={(event) => {
                       const level = event.target.value;
-                      if (isNumberDifficulty(level)) setNumberDifficulty(level);
+                      if (level in NUMBER_QUESTIONS) {
+                        setNumberDifficulty(level as NumberQuestLevel);
+                      }
                     }}
                     value={numberDifficulty}
                   >
