@@ -40,4 +40,6 @@ The app includes no analytics or advertising SDKs. Optional scores are stored in
 
 ## License and contact
 
-No license or public contact address has been configured yet. Do not assume this project is open source for reuse until a license is added.
+WonderLab is licensed under the [MIT License](./LICENSE). You are free to use, copy, modify, and redistribute it subject to the license terms.
+
+No public contact address has been configured yet. Do not publish a placeholder as if it were monitored. Report issues or questions through the repository's issue tracker once a public repository is configured.
