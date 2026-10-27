@@ -1,3 +1,5 @@
+import { games } from "./catalog";
+
 export function decimalToBinary(value: number): string {
   if (!Number.isInteger(value) || value < 0) {
     throw new RangeError("Binary conversion requires a non-negative integer.");
@@ -39,8 +41,21 @@ export const EMPTY_PROGRESS: ProgressData = {
   completedGames: [],
 };
 
+// Local progress is untrusted input, not a verified achievement record.
+const MAX_PROGRESS_LENGTH = 16_384;
+const scoreLimits = new Map(
+  games.map((game) => [game.id, game.id === "reaction-challenge" ? 1000 : 100]),
+);
+
+function isValidScore(id: string, score: unknown): score is number {
+  const limit = scoreLimits.get(id);
+  return limit !== undefined && typeof score === "number" &&
+    Number.isFinite(score) && score >= 0 && score <= limit;
+}
+
 export function parseProgress(value: string | null): ProgressData | null {
   if (value === null) return { ...EMPTY_PROGRESS, bestScores: {}, completedGames: [] };
+  if (value.length > MAX_PROGRESS_LENGTH) return null;
   try {
     const parsed: unknown = JSON.parse(value);
     if (
@@ -54,14 +69,17 @@ export function parseProgress(value: string | null): ProgressData | null {
       Array.isArray(parsed.bestScores) ||
       !("completedGames" in parsed) ||
       !Array.isArray(parsed.completedGames) ||
-      !parsed.completedGames.every((item) => typeof item === "string")
+      parsed.completedGames.length > games.length ||
+      !parsed.completedGames.every((item) => typeof item === "string" && scoreLimits.has(item)) ||
+      new Set(parsed.completedGames).size !== parsed.completedGames.length ||
+      Object.keys(parsed.bestScores).length > games.length
     ) {
       return null;
     }
 
     const bestScores: Record<string, number> = {};
     for (const [id, score] of Object.entries(parsed.bestScores)) {
-      if (!id || typeof score !== "number" || !Number.isFinite(score) || score < 0) {
+      if (!isValidScore(id, score)) {
         return null;
       }
       bestScores[id] = score;
@@ -77,8 +95,8 @@ export function recordCompletion(
   gameId: string,
   score: number,
 ): ProgressData {
-  if (!gameId.trim() || !Number.isFinite(score) || score < 0) {
-    throw new RangeError("A game id and non-negative finite score are required.");
+  if (!isValidScore(gameId, score)) {
+    throw new RangeError("A known game id and a score within its model bounds are required.");
   }
   return {
     version: 1,

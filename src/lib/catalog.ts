@@ -1,3 +1,9 @@
+import type { UniverseFamily } from "./universe/types";
+import { spaceGames } from "./universe/space.ts";
+import { scienceGames } from "./universe/science.ts";
+import { codingGames } from "./universe/coding.ts";
+import { mathsGames } from "./universe/maths.ts";
+import { strategyGames } from "./universe/strategy.ts";
 export type Difficulty = "Warm-up" | "Steady" | "Stretch";
 
 export type GameDefinition = {
@@ -10,9 +16,12 @@ export type GameDefinition = {
   difficulty: Difficulty;
   instructions: string;
   symbol: string;
+  engine?: UniverseFamily;
+  mechanic?: string;
+  takeaway?: string;
 };
 
-export const games: GameDefinition[] = [
+const legacyGames: GameDefinition[] = [
   {
     id: "memory-matrix",
     title: "Memory Matrix",
@@ -111,6 +120,8 @@ export const games: GameDefinition[] = [
   },
 ];
 
+export const games: GameDefinition[] = [...legacyGames, ...spaceGames, ...scienceGames, ...codingGames, ...mathsGames, ...strategyGames];
+
 export type ScienceDefinition = {
   id: string;
   title: string;
@@ -195,7 +206,7 @@ export function validateCatalog(items: GameDefinition[]): string[] {
     if (ids.has(item.id)) errors.push(`Duplicate game id: ${item.id}`);
     ids.add(item.id);
     for (const field of required) {
-      if (!item[field].trim()) {
+      if (!String(item[field] ?? "").trim()) {
         errors.push(`Missing ${field} for game ${item.id || "(unknown)"}`);
       }
     }

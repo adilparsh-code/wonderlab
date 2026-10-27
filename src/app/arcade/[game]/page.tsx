@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { UniverseGamePlayer } from "@/components/universe-game-player";
 import { GamePlayer } from "@/components/game-player";
 import { games } from "@/lib/catalog";
 
@@ -26,7 +27,7 @@ export default async function GamePage({ params }: GamePageProps) {
 
   return (
     <div className="container">
-      <GamePlayer game={game} />
+      {game.engine ? <UniverseGamePlayer game={game} /> : <GamePlayer game={game} />}
     </div>
   );
 }

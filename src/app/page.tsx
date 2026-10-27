@@ -12,7 +12,7 @@ export default function Home() {
           </h1>
           <p>
             Play with big ideas, test your logic, and see how the world works —
-            one small experiment at a time.
+            one small experiment at a time. Explore 50 games across five worlds, from orbital physics to coding and city planning.
           </p>
           <div className="button-row">
             <a className="button button--bright" href="/arcade/">

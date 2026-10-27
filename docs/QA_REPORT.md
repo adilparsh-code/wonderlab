@@ -1,6 +1,6 @@
 # QA report
 
-## Current remediation verification
+## Historical remediation verification — 23 October 2026
 
 **Date:** 2026-10-23
 **Commit tested:** `f4fc1223a882fbd58a2e5bc7597598f93f9cbbda`
@@ -32,10 +32,18 @@ The previous version of this report recorded a clean-install check, an `npm audi
 
 No dependency audit, browser session, hosted-route check, screen-reader test, automated accessibility scan, or independent color-contrast assessment was run during this remediation.
 
-## Remaining release work
+## Historical release work from that remediation
+
+These entries describe that earlier review, not the current repository/hosting state; use the Phase 4 update and release report for current gates.
 
 - No Git remote or hosting project is configured, and no public deployment URL exists.
 - Preview the built export on the chosen host and verify direct navigation to nested routes and loading of assets there. The successful local export inspection does not prove hosted routing.
 - Review the selected host's current privacy terms and applicable child-privacy, consumer-protection, and accessibility obligations for intended jurisdictions.
 - Complete independent assistive-technology and accessibility testing before public launch.
 - Add an operational contact channel before inviting the public; no public contact address is configured.
+
+## Phase 4 local verification — 27 October 2026
+
+The prior sections are historical. Current branch `work`, HEAD `70e441437c2864c8f5296789e120eec60230e132`, with uncommitted privacy/security/release-engineering work. Final local results: frozen npm install, lint/typecheck, **96 Vitest tests across8 files**, **43 focused security/privacy tests** (35+8, subset of96), **13 separate Node fixture tests**, **28 browser scenarios**, **19 generated HTML pages**, **16 expected page routes**, **384 local references**, dependency audit with0 reported vulnerabilities, actionlint/YAML and diff checks all pass with exit0. Actual commands/evidence and limits are in the Phase4 sections of the [security report](./RED_TEAM_SECURITY_REPORT.md) and [release report](./PHASE_2B_RELEASE_REPORT.md).
+
+The increased test count is five additional storage/notification/repeated-click/timer cases; no old test was removed/skipped. Browser checks additionally validate resolved URL origins and delayed reset state. Regex leak scans are bounded, browser-internal traffic is not measured, and local static-host behaviour does not verify production settings. Hosted CI execution, production privacy/security/retention, verified operator/contact and current legal requirements remain unverified. **Production release remains BLOCKED.** No commit, push, PR, merge or deployment was performed.

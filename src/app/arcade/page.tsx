@@ -4,7 +4,7 @@ import { ProgressSummary } from "@/components/progress-summary";
 
 export const metadata: Metadata = {
   title: "Learning Arcade",
-  description: "Play free maths, logic, focus, and coding games in your browser.",
+  description: "Explore 50 free space, science, coding, maths, and strategy games in your browser.",
 };
 
 export default function ArcadePage() {

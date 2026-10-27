@@ -1032,3 +1032,26 @@ p {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Game universe: native controls, no essential animation or colour-only signals. */
+.universe-dashboard { display:grid; grid-template-columns: 1.3fr 1fr; gap:1.5rem; margin:1.5rem 0; }
+.universe-dashboard > div { padding:1.5rem; border:1px solid var(--border, #465775); border-radius:1rem; background:var(--surface, #15223a); }
+.world-filters, .stage-track { display:flex; flex-wrap:wrap; gap:.75rem; margin:1.5rem 0; }
+.stage-track { padding:0; list-style:none; }
+.stage-track li { border:1px solid #6d819d; padding:.7rem 1rem; border-radius:2rem; }
+.stage-track [aria-current] { border:2px solid #e7f27d; font-weight:700; }
+.world-filters [aria-pressed="true"] { outline:2px solid #e7f27d; outline-offset:3px; }
+.universe-player { max-width:960px; margin:2rem auto; }
+.universe-player fieldset { padding:1.2rem; border:1px solid #6d819d; border-radius:1rem; min-width:0; }
+.universe-player label { display:inline-flex; flex-direction:column; gap:.35rem; margin:.7rem; max-width:100%; }
+.universe-player input, .universe-player select { min-height:44px; max-width:100%; color:#12213b; background:#f6f8ff; border:2px solid #667995; padding:.5rem; border-radius:.4rem; }
+.universe-player button { min-height:44px; margin:.4rem; padding:.6rem .9rem; cursor:pointer; border:1px solid #728baa; border-radius:.5rem; background:#203958; color:#fff; }
+.universe-player button:disabled { cursor:default; opacity:.65; }
+.universe-player table { border-collapse:collapse; max-width:100%; }
+.universe-player td, .universe-player th { padding:.4rem; border:1px solid #728baa; }
+.universe-player section { overflow-wrap:anywhere; }
+@media(max-width:650px) { .universe-dashboard { grid-template-columns:1fr; } .universe-player label { display:flex; margin:.5rem 0; } .universe-player fieldset { padding:.6rem; } }
+
+.sudoku-grid {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.5rem;}
+.sudoku-grid label {margin:0;font-size:.75rem;}
+.sudoku-grid input {width:100%;min-width:0;}

@@ -17,7 +17,7 @@ import {
   type NumberQuestLevel,
   type ProgressData,
 } from "@/lib/game-logic";
-import { loadProgress, saveProgress } from "@/lib/progress";
+import { emptyProgress, loadProgress, saveProgress, subscribeToProgress } from "@/lib/progress";
 import type { GameDefinition } from "@/lib/catalog";
 
 const MEMORY_LEVELS = [
@@ -64,17 +64,24 @@ export function GamePlayer({ game }: GamePlayerProps) {
   const memorySequence = MEMORY_LEVELS[memoryLevel - 1];
 
   useEffect(() => {
-    const result = loadProgress();
-    if (result.ok) {
-      setProgress(result.data);
-    } else {
-      setStorageMessage(
-        result.reason === "invalid"
-          ? "Saved progress could not be read. This round still works; old data was left untouched."
-          : "This browser has local storage turned off. You can still play; progress will not be saved.",
-      );
-    }
+    const refreshProgress = () => {
+      const result = loadProgress();
+      if (result.ok) {
+        setProgress(result.data);
+        setStorageMessage("");
+      } else {
+        setProgress(emptyProgress());
+        setStorageMessage(
+          result.reason === "invalid"
+            ? "Saved progress could not be read. This round still works; old data was left untouched."
+            : "This browser has local storage turned off. You can still play; progress will not be saved.",
+        );
+      }
+    };
+    refreshProgress();
+    const unsubscribe = subscribeToProgress(refreshProgress);
     return () => {
+      unsubscribe();
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
@@ -93,7 +100,9 @@ export function GamePlayer({ game }: GamePlayerProps) {
       setScore(earnedScore);
       showFeedback(message, "success");
       try {
-        const next = recordCompletion(progress, game.id, earnedScore);
+        // Re-read at completion so delayed events cannot revive stale scores.
+        const latest = loadProgress();
+        const next = recordCompletion(latest.ok ? latest.data : emptyProgress(), game.id, earnedScore);
         setProgress(next);
         setStorageMessage(
           saveProgress(next)
@@ -104,7 +113,7 @@ export function GamePlayer({ game }: GamePlayerProps) {
         setStorageMessage("Round complete. Progress could not be updated.");
       }
     },
-    [game.id, progress],
+    [game.id],
   );
 
   const resetRound = () => {
@@ -266,11 +275,12 @@ export function GamePlayer({ game }: GamePlayerProps) {
   const chooseMemoryTile = (index: number) => {
     if (!started || memoryPreviewIndex !== null || completed) return;
     const next = [...memoryInputs, index];
-    setMemoryInputs(next);
     if (memorySequence[next.length - 1] !== index) {
-      showFeedback("That tile was not next in the sequence. Reset and try again.", "error");
+      setMemoryInputs([]);
+      showFeedback("That tile was not next. Try the sequence again from the start.", "error");
       return;
     }
+    setMemoryInputs(next);
     if (next.length === memorySequence.length && memoryLevel < MEMORY_LEVELS.length) {
       const nextLevel = memoryLevel + 1;
       setMemoryLevel(nextLevel);

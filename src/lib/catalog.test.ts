@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { games, scienceTopics, validateCatalog } from "./catalog";
 
 describe("educational catalog", () => {
-  it("has eight unique, complete playable games and six science models", () => {
-    expect(games).toHaveLength(8);
+  it("has fifty unique, complete playable games and six science models", () => {
+    expect(games).toHaveLength(50);
     expect(new Set(games.map((game) => game.id)).size).toBe(games.length);
     expect(scienceTopics).toHaveLength(6);
     expect(validateCatalog(games)).toEqual([]);

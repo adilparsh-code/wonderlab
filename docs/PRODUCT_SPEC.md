@@ -2,7 +2,7 @@
 
 ## Audience and purpose
 
-WonderLab is an English-language learning arcade for students aged 11–16, including Indian learners and an international audience. It makes maths, logic, science, and beginner programming ideas explorable through short browser activities.
+WonderLab is an English-language learning arcade for students aged approximately 11–18, including Indian learners and an international audience. It makes maths, logic, science, and beginner programming ideas explorable through short browser activities.
 
 ## Principles
 
@@ -15,7 +15,7 @@ WonderLab is an English-language learning arcade for students aged 11–16, incl
 ## MVP acceptance
 
 - Home, Arcade, How Things Work, Coding Lab, Challenges, About, Privacy, and Accessibility pages.
-- Eight playable, replayable games with feedback and age/difficulty information.
+- Fifty playable, replayable games with feedback and age/difficulty information, including 42 three-stage journeys.
 - Six interactive science models, each with a knowledge check and limitations.
 - Coding prompts for binary, conditions, and loops, evaluated with local fixed answers.
 - Static export, focused logic/content tests, linting, type checking, and production build.

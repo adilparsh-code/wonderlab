@@ -7,7 +7,14 @@
     "build": "next build",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:security": "vitest run src/components/security.test.tsx src/components/privacy.test.tsx",
+    "test:quality": "node --test scripts/quality-gates.test.mjs",
+    "test:browser": "node scripts/security-browser.mjs",
+    "test:universe": "node scripts/universe-browser.mjs",
+    "validate:export": "node scripts/security-artifacts.mjs",
+    "audit:dependencies": "npm audit",
+    "check": "npm run lint && npm run typecheck && npm test && npm run test:quality && npm run build && npm run validate:export"
   },
   "dependencies": {
     "next": "16.4.2",

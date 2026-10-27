@@ -6,7 +6,7 @@ import { games } from "@/lib/catalog";
 afterEach(cleanup);
 
 describe("GameCatalog", () => {
-  it("renders all eight games with links", () => {
+  it("renders all fifty games with links", () => {
     render(<GameCatalog />);
     for (const game of games) {
       expect(screen.getByText(game.title)).toBeDefined();
@@ -54,7 +54,7 @@ describe("GameCatalog", () => {
 
   it("displays the visible game count in an aria-live region", () => {
     render(<GameCatalog />);
-    expect(document.body.textContent).toContain("8 games to explore");
+    expect(document.body.textContent).toContain("50 games to explore");
   });
 
   it("limits to three games in compact mode", () => {
@@ -63,4 +63,29 @@ describe("GameCatalog", () => {
     expect(cards.length).toBeLessThanOrEqual(3);
     expect(document.body.textContent).toContain("View all games");
   });
+});
+it("filters five worlds and combines world, subject, difficulty and search", () => {
+  render(<GameCatalog />);
+  fireEvent.click(screen.getByRole("button",{name:"Space & Physics"}));
+  expect(screen.getByText("Lunar Landing")).toBeTruthy();
+  expect(screen.queryByText("Atom Builder")).toBeNull();
+  fireEvent.change(screen.getByLabelText("Level"),{target:{value:"Warm-up"}});
+  fireEvent.change(screen.getByRole("searchbox"),{target:{value:"lunar"}});
+  expect(screen.getAllByRole("link",{name:/Open game/})).toHaveLength(1);
+  fireEvent.change(screen.getByLabelText("Subject"),{target:{value:"Science"}});
+  expect(screen.queryByRole("link",{name:/Open game/})).toBeNull();
+});
+it("sorts titles alphabetically without implying popularity",()=>{
+  const {container}=render(<GameCatalog />);
+  fireEvent.change(screen.getByLabelText("Sort"),{target:{value:"Title A–Z"}});
+  const titles=[...container.querySelectorAll(".game-card h3")].map(el=>el.textContent??"");
+  expect(titles).toEqual([...titles].sort((a,b)=>a.localeCompare(b)));
+});
+it("refreshes local completion status after a privacy reset",()=>{
+  localStorage.setItem("wonderlab.progress.v1",JSON.stringify({version:1,bestScores:{"lunar-landing":100},completedGames:["lunar-landing"]}));
+  render(<GameCatalog />);
+  expect(screen.getByText(/1 completed · 100 XP/)).toBeTruthy();
+  localStorage.removeItem("wonderlab.progress.v1");
+  fireEvent(window,new StorageEvent("storage",{key:"wonderlab.progress.v1",newValue:null}));
+  expect(screen.getByText(/0 completed · 0 XP/)).toBeTruthy();
 });
