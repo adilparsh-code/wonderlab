@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, render, screen, fireEvent } from "@testing-library/react";
+import { act, cleanup, render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { GamePlayer } from "./game-player";
 import { games } from "@/lib/catalog";
 
@@ -19,64 +19,63 @@ describe("GamePlayer", () => {
     render(<GamePlayer game={numberQuestGame} />);
     expect(screen.getByText("Number Quest")).toBeTruthy();
     expect(screen.getByText("Build fluency with multiplication and explain a calculation.")).toBeTruthy();
-    const startButton = document.querySelector('button[type="button"]:has-text("Start round")');
+    const startButton = screen.getByRole("button", { name: "Start round" });
     expect(startButton).toBeTruthy();
   });
 
   it("starts a round and shows the question", () => {
     render(<GamePlayer game={numberQuestGame} />);
-    const startButton = document.querySelector('button[type="button"]:has-text("Start round")');
+    const startButton = screen.getByRole("button", { name: "Start round" });
     fireEvent.click(startButton);
     expect(screen.getByText("7 × 8 = ?")).toBeTruthy();
   });
 
   it("accepts a correct number-quest answer and completes the round", async () => {
     render(<GamePlayer game={numberQuestGame} />);
-    const startButton = document.querySelector('button[type="button"]:has-text("Start round")');
+    const startButton = screen.getByRole("button", { name: "Start round" });
     fireEvent.click(startButton);
 
-    // Select answer input using robust DOM query
-    const input = document.querySelector('input[placeholder*="answer"]') || document.querySelector('input[aria-label*="answer"]');
-    fireEvent.change(input!, { target: { value: "56" } });
-    fireEvent.click(document.querySelector('button:has-text("Check")'));
+    const input = screen.getByRole("textbox", { name: "Your answer" });
+    fireEvent.change(input, { target: { value: "56" } });
+    fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
 
     await waitFor(() => {
-      expect(document.querySelector('[role="status"]')).textContent.toMatch(/Correct/);
+      expect(screen.getByRole("status").textContent).toMatch(/Correct/);
     });
   });
 
   it("rejects a wrong number-quest answer", async () => {
     render(<GamePlayer game={numberQuestGame} />);
-    const startButton = document.querySelector('button[type="button"]:has-text("Start round")');
+    const startButton = screen.getByRole("button", { name: "Start round" });
     fireEvent.click(startButton);
-    const input = document.querySelector('input[placeholder*="answer"]') || document.querySelector('input[aria-label*="answer"]');
-    fireEvent.change(input!, { target: { value: "1" } });
-    fireEvent.click(document.querySelector('button:has-text("Check")'));
-    expect(document.querySelector('[role="status"]')).textContent.toMatch(/Not quite/);
+    const input = screen.getByRole("textbox", { name: "Your answer" });
+    fireEvent.change(input, { target: { value: "1" } });
+    fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
+    expect(screen.getByRole("status").textContent).toMatch(/Not quite/);
   });
 
   it("accepts the correct binary answer for 19", async () => {
     render(<GamePlayer game={binaryGame} />);
-    const startButton = document.querySelector('button[type="button"]:has-text("Start round")');
+    const startButton = screen.getByRole("button", { name: "Start round" });
     fireEvent.click(startButton);
-    const input = document.querySelector('input[placeholder*="answer"]') || document.querySelector('input[aria-label*="answer"]');
-    fireEvent.change(input!, { target: { value: "10011" } });
-    fireEvent.click(document.querySelector('button:has-text("Check")'));
-    expect(document.querySelector('[role="status"]')).textContent.toMatch(/Correct/);
+    const input = screen.getByRole("textbox", { name: "Your answer" });
+    fireEvent.change(input, { target: { value: "10011" } });
+    fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
+    expect(screen.getByRole("status").textContent).toMatch(/Correct/);
   });
 
   it("accepts the correct pattern answer (48)", async () => {
     render(<GamePlayer game={patternGame} />);
-    fireEvent.click(document.querySelector('button[type="button"]:has-text("Start round")'));
-    const input = document.querySelector('input[placeholder*="answer"]') || document.querySelector('input[aria-label*="answer"]');
-    fireEvent.change(input!, { target: { value: "48" } });
-    fireEvent.click(document.querySelector('button:has-text("Check")'));
-    expect(document.querySelector('[role="status"]')).textContent.toMatch(/Correct/);
+    fireEvent.click(screen.getByRole("button", { name: "Start round" }));
+    const input = screen.getByRole("textbox", { name: "Your answer" });
+    fireEvent.change(input, { target: { value: "48" } });
+    fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
+    expect(screen.getByRole("status").textContent).toMatch(/Correct/);
   });
 
   it("completes the algorithm builder when steps are chosen in order", async () => {
     render(<GamePlayer game={algorithmGame} />);
-    fireEvent.click(document.querySelector('button[type="button"]:has-text("Start round")'));
+    fireEvent.click(screen.getByRole("button", { name: "Start round" }));
     fireEvent.click(screen.getByText("Choose a clear goal"));
     fireEvent.click(screen.getByText("Write instructions in order"));
     fireEvent.click(screen.getByText("Test the result and improve it"));
@@ -94,21 +93,21 @@ describe("GamePlayer", () => {
 
   it("allows reset and replay after completion", async () => {
     render(<GamePlayer game={patternGame} />);
-    fireEvent.click(document.querySelector('button[type="button"]:has-text("Start round")'));
-    const input = document.querySelector('input[placeholder*="answer"]') || document.querySelector('input[aria-label*="answer"]');
-    fireEvent.change(input!, { target: { value: "48" } });
-    fireEvent.click(document.querySelector('button:has-text("Check")'));
+    fireEvent.click(screen.getByRole("button", { name: "Start round" }));
+    const input = screen.getByRole("textbox", { name: "Your answer" });
+    fireEvent.change(input, { target: { value: "48" } });
+    fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
     await waitFor(() => {
-      expect(document.querySelector('[role="status"]')).textContent.toMatch(/Correct/);
+      expect(screen.getByRole("status").textContent).toMatch(/Correct/);
     });
-    fireEvent.click(document.querySelector('button:has-text("Reset round")'));
+    fireEvent.click(screen.getByRole("button", { name: "Reset round" }));
     expect(screen.getByRole("button", { name: "Start round" })).toBeTruthy();
   });
 
   it("previews Memory Matrix tiles one at a time and completes and replays the sequence", () => {
     vi.useFakeTimers();
     render(<GamePlayer game={memoryGame} />);
-    fireEvent.click(document.querySelector('button[type="button"]:has-text("Start round")'));
+    fireEvent.click(screen.getByRole("button", { name: "Start round" }));
 
     expect(screen.getByRole("status").textContent).toMatch(/Watch the highlighted tiles/);
     expect(screen.getByRole("button", { name: "Tile 3" }).className).toContain(
@@ -124,7 +123,12 @@ describe("GamePlayer", () => {
       "memory-tile--active",
     );
     act(() => vi.advanceTimersByTime(600));
-    expect(document.querySelector('[role="status"]')).textContent.toMatch(/Now repeat the sequence/);
+    expect(screen.getByRole("status").textContent).toMatch(/Now repeat the sequence/);
+    expect(document.body.textContent).not.toContain("3 · 1");
+    expect(screen.getAllByRole("button", { name: /^Tile/ }).every(
+      (tile) => !tile.className.includes("memory-tile--active"),
+    )).toBe(true);
+    expect(screen.getByRole<HTMLButtonElement>("button", { name: "Tile 3" }).disabled).toBe(false);
     fireEvent.click(screen.getByRole("button", { name: "Tile 3" }));
     fireEvent.click(screen.getByRole("button", { name: "Tile 1" }));
 
@@ -134,6 +138,8 @@ describe("GamePlayer", () => {
     );
     expect(document.body.textContent).not.toContain("3 · 1 · 4");
     act(() => vi.advanceTimersByTime(1800));
+    expect(screen.getByRole("status").textContent).toMatch(/Level 2: repeat the sequence/);
+    expect(document.body.textContent).not.toContain("3 · 1 · 4");
     fireEvent.click(screen.getByRole("button", { name: "Tile 3" }));
     fireEvent.click(screen.getByRole("button", { name: "Tile 1" }));
     fireEvent.click(screen.getByRole("button", { name: "Tile 4" }));
@@ -144,6 +150,8 @@ describe("GamePlayer", () => {
     );
     expect(document.body.textContent).not.toContain("2 · 4 · 1 · 3");
     act(() => vi.advanceTimersByTime(2400));
+    expect(screen.getByRole("status").textContent).toMatch(/Level 3: repeat the sequence/);
+    expect(document.body.textContent).not.toContain("2 · 4 · 1 · 3");
     fireEvent.click(screen.getByRole("button", { name: "Tile 2" }));
     fireEvent.click(screen.getByRole("button", { name: "Tile 4" }));
     fireEvent.click(screen.getByRole("button", { name: "Tile 1" }));
